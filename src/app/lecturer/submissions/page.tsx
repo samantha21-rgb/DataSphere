@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
@@ -50,7 +50,7 @@ type SubmissionRow = Submission & {
   student: Profile | null;
 };
 
-export default function LecturerSubmissionsPage() {
+function LecturerSubmissionsPage() {
   const searchParams = useSearchParams();
 
   const assignmentFilter = searchParams.get("assignment");
@@ -333,9 +333,11 @@ export default function LecturerSubmissionsPage() {
           setSelectedUnit(parsedUnit);
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err?.message || "Failed to load submissions.");
+      setError(
+        err instanceof Error ? err.message : "Failed to load submissions."
+      );
     } finally {
       setLoading(false);
     }
@@ -532,9 +534,11 @@ export default function LecturerSubmissionsPage() {
         "_blank",
         "noopener,noreferrer"
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(
-        err?.message || "Unable to open the submission file."
+        err instanceof Error
+          ? err.message
+          : "Unable to open the submission file."
       );
     }
   }
@@ -624,11 +628,13 @@ export default function LecturerSubmissionsPage() {
           ? "Grade saved and submission returned to the student."
           : "Grade saved successfully."
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
 
       setError(
-        err?.message || "Failed to save grade."
+        err instanceof Error
+          ? err.message
+          : "Failed to save grade."
       );
     } finally {
       setSaving(false);
@@ -688,11 +694,13 @@ export default function LecturerSubmissionsPage() {
       setSuccess(
         "Submission returned to the student."
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
 
       setError(
-        err?.message || "Failed to return submission."
+        err instanceof Error
+          ? err.message
+          : "Failed to return submission."
       );
     } finally {
       setSaving(false);
@@ -714,7 +722,7 @@ export default function LecturerSubmissionsPage() {
 
   function formatDate(value: string | null) {
     if (!value) {
-      return "—";
+      return "â€”";
     }
 
     return new Date(value).toLocaleString(undefined, {
@@ -815,7 +823,7 @@ export default function LecturerSubmissionsPage() {
               href="/lecturer"
               className="text-sm font-medium text-blue-600 hover:underline"
             >
-              ← Lecturer Dashboard
+              â† Lecturer Dashboard
             </Link>
 
             <h1 className="mt-2 text-3xl font-bold text-gray-900">
@@ -907,7 +915,7 @@ export default function LecturerSubmissionsPage() {
                     key={unit.id}
                     value={unit.id}
                   >
-                    {unit.code || "UNIT"} —{" "}
+                    {unit.code || "UNIT"} â€”{" "}
                     {unit.name || "Unnamed Unit"}
                   </option>
                 ))}
@@ -1024,7 +1032,7 @@ export default function LecturerSubmissionsPage() {
           {filteredSubmissions.length === 0 ? (
             <div className="px-6 py-16 text-center">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-2xl">
-                📄
+                ðŸ“„
               </div>
 
               <h3 className="font-semibold text-gray-900">
@@ -1096,7 +1104,7 @@ export default function LecturerSubmissionsPage() {
                       {/* Unit */}
                       <td className="px-5 py-4">
                         <div className="font-medium text-gray-900">
-                          {submission.unit.code || "—"}
+                          {submission.unit.code || "â€”"}
                         </div>
 
                         <div className="text-xs text-gray-500">
@@ -1207,7 +1215,7 @@ export default function LecturerSubmissionsPage() {
                 onClick={closeSubmission}
                 className="rounded-lg px-3 py-2 text-xl text-gray-500 hover:bg-gray-100"
               >
-                ×
+                Ã—
               </button>
             </div>
 
@@ -1310,7 +1318,7 @@ export default function LecturerSubmissionsPage() {
                 </h3>
 
                 <p className="mt-1 text-sm text-gray-500">
-                  Enter the student's score and feedback.
+                  Enter the student&apos;s score and feedback.
                 </p>
 
                 <div className="mt-5 grid gap-5 md:grid-cols-[180px_1fr]">
@@ -1480,5 +1488,24 @@ function InfoBox({
         {value}
       </p>
     </div>
+  );
+}
+export default function SubmissionsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-gray-50 p-6">
+          <div className="mx-auto max-w-7xl">
+            <div className="animate-pulse space-y-5">
+              <div className="h-10 w-80 rounded bg-gray-200" />
+              <div className="h-24 rounded-xl bg-white" />
+              <div className="h-96 rounded-xl bg-white" />
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <LecturerSubmissionsPage />
+    </Suspense>
   );
 }
