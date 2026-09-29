@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
@@ -77,7 +77,7 @@ type StudentRow = {
   letter: string;
 };
 
-export default function LecturerGradebookPage() {
+function LecturerGradebookPage() {
   const searchParams = useSearchParams();
 
   const unitFromUrl = searchParams.get("unit");
@@ -389,11 +389,13 @@ export default function LecturerGradebookPage() {
       }
 
       setProfiles(loadedProfiles);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
 
       setError(
-        err?.message || "Failed to load lecturer gradebook."
+        err instanceof Error
+          ? err.message
+          : "Failed to load lecturer gradebook."
       );
     } finally {
       setLoading(false);
@@ -1626,13 +1628,29 @@ function StatCard({
 }) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-gray-500">
-        {label}
-      </p>
+      <p className="text-sm font-medium text-gray-500">{label}</p>
 
-      <p className="mt-2 text-2xl font-bold text-gray-900">
-        {value}
-      </p>
+      <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
     </div>
+  );
+}
+
+export default function GradebookPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-gray-50 p-6">
+          <div className="mx-auto max-w-7xl">
+            <div className="animate-pulse space-y-5">
+              <div className="h-10 w-80 rounded bg-gray-200" />
+              <div className="h-24 rounded-xl bg-white" />
+              <div className="h-96 rounded-xl bg-white" />
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <LecturerGradebookPage />
+    </Suspense>
   );
 }
